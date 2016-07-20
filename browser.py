@@ -398,7 +398,13 @@ class WebDriver(metaclass=SwithSuperMetaclass):
         sleep(config.load_timeout)
 
     def scroll_down(self, y):
-        self.execute_script("document.documentElement.scrollTop += {};".format(y))
+        try:
+            self.execute_script("document.documentElement.scrollTop += {};".format(y))
+        except Exception:
+            return
 
     def scroll_up(self, y):
-        self.execute_script("document.documentElement.scrollTop -= {};".format(y))
+        try:
+            self.execute_script("document.documentElement.scrollTop -= {};".format(y))
+        except Exception:
+            return
