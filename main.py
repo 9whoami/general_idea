@@ -63,9 +63,9 @@ class SearchInGoogle:
             int(config.site_limit.split(',')[1]))
 
     def search(self, search_request):
-        # self.driver.filling_web_element(".//*[@id='lst-ib']", search_request)
-        # sleep(1)
-        # self.driver.find_element_by_css_selector("body").send_keys(Keys.RETURN)
+        self.driver.filling_web_element(".//*[@id='lst-ib']", search_request)
+        sleep(1)
+        self.driver.find_element_by_css_selector("body").send_keys(Keys.RETURN)
         input_field = self.driver.get_element_or_none(".//*[@id='lst-ib']")
         self.driver.filling_web_element(input_field, search_request)
         input_field.submit()
