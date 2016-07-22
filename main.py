@@ -23,6 +23,7 @@ __description__ = """"""
 
 class SearchInGoogle:
     search_result = None
+    target_site = None
 
     def __init__(self, driver):
         self.driver = driver
@@ -73,6 +74,11 @@ class SearchInGoogle:
     def collect_result(self):
         search_results = ".//*[@id='rso']/.//div[@class='rc']/h3[@class='r']/a"
         self.search_result = self.driver.get_elements_by_xpath(search_results)
+        for web_elem in self.search_result:
+            href = self.driver.get_element_info(web_elem, 'href')
+            if config.target_domain in href:
+                self.target_site = web_elem
+                break
 
     def go_rand_result(self):
         while True:
@@ -84,10 +90,18 @@ class SearchInGoogle:
 
                 search_lnk = self.search_result.pop(randint(0, len(self.search_result)-1))
             except (IndexError, ValueError):
-                if not self.go_to_next_page():
+                if self.target_site:
+                    self.search_result.clear()
+                    self.search_result.append(self.target_site)
+                    self.site_cnt -= 1
+                    self.target_site = None
+                    continue
+                elif not self.go_to_next_page():
                     raise StopIteration
-                self.collect_result()
-                search_lnk = self.search_result.pop(randint(0, len(self.search_result) - 1))
+                else:
+                    sleep(5)
+                    self.collect_result()
+                    continue
 
             href = self.driver.get_element_info(search_lnk, 'href')
 
@@ -201,14 +215,14 @@ while True:
         continue
 
     while True:
-        # proxy = None
-        try:
-            proxy = proxy_list.pop()
-            if proxy == '':
-                raise IndexError
-        except IndexError:
-            Logger().error('Закончились прокси')
-            raise SystemExit
+        proxy = None
+        # try:
+        #     proxy = proxy_list.pop()
+        #     if proxy == '':
+        #         raise IndexError
+        # except IndexError:
+        #     Logger().error('Закончились прокси')
+        #     raise SystemExit
 
         try:
             driver = WebDriver(user_agent=fake_ua.random, proxy=proxy, proxy_type=config.proxy_type)
@@ -219,15 +233,13 @@ while True:
         else:
             break
 
-    # driver = WebDriver(user_agent=fake_ua.random)
-
     sig = SearchInGoogle(driver)
-    if not sig.captcha():
-        driver.close()
-        continue
     try:
+        if not sig.captcha():
+            raise AttributeError
         sig.search(request)
     except AttributeError:
+        driver.close()
         continue
     sleep(2)
     sig.collect_result()
