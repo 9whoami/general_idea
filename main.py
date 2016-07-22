@@ -228,7 +228,6 @@ while True:
             driver = WebDriver(user_agent=fake_ua.random, proxy=proxy, proxy_type=config.proxy_type)
         except Exception as e:
             print(e)
-            driver.close()
             continue
         else:
             break
