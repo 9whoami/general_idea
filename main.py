@@ -215,14 +215,14 @@ while True:
         continue
 
     while True:
-        proxy = None
-        # try:
-        #     proxy = proxy_list.pop()
-        #     if proxy == '':
-        #         raise IndexError
-        # except IndexError:
-        #     Logger().error('Закончились прокси')
-        #     raise SystemExit
+        # proxy = None
+        try:
+            proxy = proxy_list.pop()
+            if proxy == '':
+                raise IndexError
+        except IndexError:
+            Logger().error('Закончились прокси')
+            raise SystemExit
 
         try:
             driver = WebDriver(user_agent=fake_ua.random, proxy=proxy, proxy_type=config.proxy_type)
