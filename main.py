@@ -83,7 +83,7 @@ class SearchInGoogle:
                     self.site_cnt += 1
 
                 search_lnk = self.search_result.pop(randint(0, len(self.search_result)-1))
-            except IndexError:
+            except (IndexError, ValueError):
                 if not self.go_to_next_page():
                     raise StopIteration
                 self.collect_result()
@@ -154,7 +154,7 @@ class ViewTargetSite:
                     raise StopIteration
 
                 link = self.links.pop(randint(0, len(self.links)-1))
-            except IndexError:
+            except (IndexError, ValueError):
                 raise StopIteration
             href = self.driver.get_element_info(link, 'href')
             if config.target_domain not in href:
@@ -183,6 +183,7 @@ def timer(seconds):
 
 with open('proxy', 'r') as f:
     proxy_list = f.read().split('\n')
+
 
 def read_search_requests():
     with open('search_requests', 'r') as f:
