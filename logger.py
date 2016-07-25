@@ -69,8 +69,6 @@ class SingletonMetaclass(type):
 
 
 class Logger(metaclass=SingletonMetaclass):
-    variable = '123'
-
     def __init__(self):
         # '%(module)s' at line %(lineno)d:
         log_msg_format = "%(asctime)s.%(msecs)d %(levelname)s in %(message)s"

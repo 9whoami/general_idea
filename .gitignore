@@ -8,6 +8,11 @@ __pycache__/
 .wrp_venv
 logs
 screen
+captcha.png
+test.py
+proxy
+settings.cfg
+search_requests
 
 # C extensions
 *.so
