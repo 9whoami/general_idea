@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+from random import randint
 from logger import Logger
 from selenium.webdriver.common.keys import Keys
 from virtual_display import VirtualDisplay
@@ -20,7 +21,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 
 __author__ = 'whoami'
-__version__ = '0.0.0'
+__version__ = '2.3.0'
 __date__ = '27.03.16 0:46'
 __description__ = """
 Обертка для selenium.webdriver
@@ -74,6 +75,8 @@ class WebDriver(metaclass=SwithSuperMetaclass):
         config.implicitly_wait = int(config.implicitly_wait)
         self.implicitly_wait(config.implicitly_wait)
         self.get(config.test_url)
+
+        self.scroll_method = randint(0,2)
 
     def __del__(self):
         try:
@@ -398,8 +401,19 @@ class WebDriver(metaclass=SwithSuperMetaclass):
         sleep(config.load_timeout)
 
     def scroll_down(self, y):
-        try:
+        def js():
             self.execute_script("document.documentElement.scrollTop += {};".format(y))
+
+        def arrow():
+            self.find_element_by_css_selector("body").send_keys(Keys.ARROW_DOWN)
+
+        def page_down():
+            self.find_element_by_css_selector("body").send_keys(Keys.PAGE_DOWN)
+
+        scroll_method = {0: js, 1: arrow, 2: page_down}
+
+        try:
+            scroll_method[self.scroll_method]()
         except Exception:
             return
 
