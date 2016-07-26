@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from os import path
+from datetime import datetime
 from antigate import AntiGateError
 from grab.error import GrabTimeoutError
 from fake_useragent import UserAgent
@@ -18,6 +20,71 @@ __author__ = "whoami"
 __version__ = "1.0.2"
 __date__ = "09.07.16 17:56"
 __description__ = """"""
+
+
+class Statistic:
+    JUMP_TO_GENERAL_SITE='jump_to_general_site'
+    JUMP_TO_OTHER_SITE='jump_to_other_site'
+    SEARCH_KEYWORD='search_keyword'
+
+    @call_info
+    def __init__(self, general_site_list: iter, keywords: iter):
+        self._start_time = datetime.now()
+        self.full_time = dict(
+            start_time=str(self._start_time),
+            search_keyword={key:0 for key in keywords},
+            jump_to_general_site={key:0 for key in general_site_list},
+            jump_to_other_site=0
+        )
+
+        self.update_today(general_site_list, keywords)
+        self.session_id, self.stat_file = self._make_stat_file()
+
+    @call_info
+    def _make_stat_file(self):
+        def gen_session_id():
+            return '{}{}{}-{}{}{}-{}{}{}'.format(*[randint(0,9) for i in range(100)])
+        session_id = gen_session_id()
+        file_ext = '.txt'
+        while path.exists(session_id + file_ext):
+            session_id = gen_session_id()
+
+        stat_file = session_id + file_ext
+        return session_id, stat_file
+
+    @call_info
+    def update_today(self, general_site_list: iter, keywords: iter):
+        self.today = dict(
+            search_keyword={key: 0 for key in keywords},
+            jump_to_general_site={key: 0 for key in general_site_list},
+            jump_to_other_site=0
+        )
+
+    def __str__(self):
+        return '\nsession_id: {}\nfull_time: {}\ntoday: {}'.format(
+            self.session_id, self.full_time, self.today)
+
+    @call_info
+    def store(self):
+        with open(self.stat_file, 'w') as f:
+            f.write(self.__str__())
+
+    @call_info
+    def inc(self, key1, key2=None):
+        if key2:
+            self.full_time[key1][key2] += 1
+            self.today[key1][key2] += 1
+        else:
+            self.full_time[key1] += 1
+            self.today[key1] += 1
+
+    @call_info
+    def check_update(self):
+        cur_date = datetime.now()
+        logger.info(cur_date, self._start_time)
+        difference = cur_date - self._start_time
+        return bool(difference.days) is True
+
 
 
 class SearchInGoogle:
@@ -234,6 +301,15 @@ def read_search_requests():
 
     return search_requests
 
+
+def check_url(target_domains: iter, url: str) -> bool:
+    check_url.last_index = -1
+    for domain in target_domains:
+        if domain in url:
+            check_url.last_index = target_domains.index(domain)
+            return True
+
+
 logger = Logger()
 logger.info("Initialization...")
 try:
@@ -241,6 +317,7 @@ try:
     th_pool = ThreadPool(max_threads=1)
     config = Conf()
     config.read_section('base')
+    target_sites = config.target_domain.split(',')
     driver = None
 
     logger.info('Reading proxy list...')
@@ -254,6 +331,7 @@ try:
         logger.info('Reading proxy list...OK')
 
     search_requests = read_search_requests()
+    statistics = Statistic(general_site_list=target_sites, keywords=search_requests)
 except BaseException as e:
     logger.critical('Initialization raises an exception with message: {!r}'.format(str(e)))
     raise SystemExit
@@ -269,9 +347,15 @@ def timer(seconds):
 
 while True:
     try:
+        logger.info(statistics)
+        if statistics.check_update():
+            statistics.update_today(general_site_list=target_sites, keywords=search_requests)
+        statistics.store()
+
         try:
             logger.info('Receiving a search request...')
             request = search_requests.pop()
+            statistics.inc(statistics.SEARCH_KEYWORD, request)
         except IndexError:
             logger.info('Request list is empty')
             search_requests = read_search_requests()
@@ -281,16 +365,16 @@ while True:
 
         while True:
             proxy = None
-            # try:
-            #     logger.info('Receiving a proxy...')
-            #     proxy = proxy_list.pop()
-            #     if proxy == '':
-            #         raise IndexError
-            # except IndexError:
-            #     logger.error('Proxy list is empty...')
-            #     raise SystemExit
-            # else:
-            #     logger.info('Receiving a proxy...OK')
+            try:
+                logger.info('Receiving a proxy...')
+                proxy = proxy_list.pop()
+                if proxy == '':
+                    raise IndexError
+            except IndexError:
+                logger.error('Proxy list is empty...')
+                raise SystemExit
+            else:
+                logger.info('Receiving a proxy...OK')
 
             logger.info('Starting the Web driver...')
             try:
@@ -315,20 +399,24 @@ while True:
         sig.collect_result()
 
         for url in sig.go_rand_result():
-            if config.target_domain in url:
+            if check_url(target_domains=target_sites, url=url):
                 vts = ViewTargetSite(driver)
                 vts.scroll_down()
                 for _ in vts.go_to_rnd_lnk():
                     vts.scroll_down()
                 vts.close()
+                statistics.inc(statistics.JUMP_TO_GENERAL_SITE, target_sites[check_url.last_index])
                 break
             else:
                 vs = ViewSite(driver)
                 vs.scroll_down()
                 vs.close()
+                statistics.inc(statistics.JUMP_TO_OTHER_SITE)
 
         logger.info('The work is finished, close the Web Driver')
         driver.close()
     except KeyboardInterrupt:
         logger.info('Job canceled by the user')
         raise SystemExit
+    finally:
+        statistics.store()
