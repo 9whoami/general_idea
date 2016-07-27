@@ -389,7 +389,7 @@ while True:
             logger.info('Receiving a search request...OK')
 
         attempt = 0
-        attempts = 3
+        attempts = 10
         while True:
             if attempt >= attempts:
                 raise SystemExit('You have exceeded the number of attempts to start web driver')
@@ -412,6 +412,7 @@ while True:
                 driver = WebDriver(user_agent=fake_ua.random, proxy=proxy, proxy_type=config.proxy_type)
             except Exception as e:
                 logger.error('Starting the Web driver raises an exception with a message: {!r}'.format(str(e)))
+                attempt += 1
                 continue
             else:
                 logger.info('Starting the Web driver...OK')
@@ -423,7 +424,7 @@ while True:
                 raise AttributeError
             sig.search(request)
         except AttributeError:
-            driver.close()
+            del driver
             continue
         sleep(2)
 
@@ -445,7 +446,7 @@ while True:
                 statistics.inc(statistics.JUMP_TO_OTHER_SITE)
 
         logger.info('The work is finished, close the Web Driver')
-        driver.close()
+        del driver
     except KeyboardInterrupt:
         logger.info('Job canceled by the user')
         raise SystemExit
