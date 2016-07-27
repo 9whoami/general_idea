@@ -391,7 +391,6 @@ while True:
         attempt = 0
         attempts = 10
         while True:
-            attempt += 1
             if attempt >= attempts:
                 raise SystemExit('You have exceeded the number of attempts to start web driver')
             proxy_list = proxy_update(proxy_list_old[:])
@@ -402,6 +401,7 @@ while True:
             except IndexError:
                 logger.error('Proxy list is empty...')
                 proxy_list = get_proxy()
+                attempt += 1
                 continue
             else:
                 proxy_list_old.append(proxy)
