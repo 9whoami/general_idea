@@ -389,7 +389,7 @@ while True:
             logger.info('Receiving a search request...OK')
 
         attempt = 0
-        attempts = 10
+        attempts = 3
         while True:
             if attempt >= attempts:
                 raise SystemExit('You have exceeded the number of attempts to start web driver')
