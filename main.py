@@ -388,7 +388,12 @@ while True:
         else:
             logger.info('Receiving a search request...OK')
 
+        attempt = 0
+        attempts = 10
         while True:
+            attempt += 1
+            if attempt >= attempts:
+                raise SystemExit('You have exceeded the number of attempts to start web driver')
             proxy_list = proxy_update(proxy_list_old[:])
             proxy = None
             try:
