@@ -3,6 +3,7 @@
 from os import path
 from datetime import datetime
 from antigate import AntiGateError
+from grab import Grab
 from grab.error import GrabTimeoutError
 from fake_useragent import UserAgent
 from time import sleep
@@ -310,6 +311,39 @@ def check_url(target_domains: iter, url: str) -> bool:
             return True
 
 
+def get_proxy():
+    logger.info('Reading proxy list...')
+    proxy = list()
+    try:
+        with open('proxy', 'r') as f:
+            file_text = f.read()
+            if file_text:
+                proxy = file_text.split('\n')
+            else:
+                raise Exception('Proxy file is empty!')
+        if proxy[0].startswith('http'):
+            g = Grab()
+            g.go(proxy[0])
+            if g.response.code == 200:
+                response = str(g.response.body, encoding='cp1251')
+                proxy = response.split('\n')
+    except Exception as e:
+        logger.error('It raises an exception with message: {!r}'.format(str(e)))
+        raise SystemExit(e)
+    else:
+        logger.info('Reading proxy list...OK')
+        return proxy
+
+
+def proxy_update(proxy_old):
+    proxy_old = set(proxy_old)
+    proxy = get_proxy()
+    if isinstance(proxy, list):
+        proxy = set(proxy)
+        proxy = list(proxy.difference(proxy_old))
+    return proxy
+
+
 logger = Logger()
 logger.info("Initialization...")
 try:
@@ -319,17 +353,8 @@ try:
     config.read_section('base')
     target_sites = config.target_domain.split(',')
     driver = None
-
-    logger.info('Reading proxy list...')
-    try:
-        with open('proxy', 'r') as f:
-            proxy_list = f.read().split('\n')
-    except Exception as e:
-        logger.error('It raises an exception with message: {!r}'.format(str(e)))
-        raise SystemExit
-    else:
-        logger.info('Reading proxy list...OK')
-
+    proxy_list = get_proxy()
+    proxy_list_old = list()
     search_requests = read_search_requests()
     statistics = Statistic(general_site_list=target_sites, keywords=search_requests)
 except BaseException as e:
@@ -364,16 +389,17 @@ while True:
             logger.info('Receiving a search request...OK')
 
         while True:
+            proxy_list = proxy_update(proxy_list_old[:])
             proxy = None
             try:
                 logger.info('Receiving a proxy...')
                 proxy = proxy_list.pop()
-                if proxy == '':
-                    raise IndexError
             except IndexError:
                 logger.error('Proxy list is empty...')
-                raise SystemExit
+                proxy_list = get_proxy()
+                continue
             else:
+                proxy_list_old.append(proxy)
                 logger.info('Receiving a proxy...OK')
 
             logger.info('Starting the Web driver...')
