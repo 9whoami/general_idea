@@ -454,4 +454,4 @@ while True:
         raise SystemExit
     finally:
         statistics.store()
-        virt_disp.stop()
+virt_disp.stop()
