@@ -9,8 +9,8 @@ from fake_useragent import UserAgent
 from time import sleep
 from random import shuffle, randint
 from selenium.common.exceptions import StaleElementReferenceException, WebDriverException
-from selenium.webdriver.common.keys import Keys
 
+from virtual_display import VirtualDisplay
 from browser import WebDriver
 from captha_lib import RecognizeCaptcha
 from config import Conf
@@ -370,6 +370,8 @@ def timer(seconds):
     for _ in range(0, seconds):
         sleep(1)
 
+virt_disp = VirtualDisplay()
+virt_disp.start()
 while True:
     try:
         logger.info(statistics)
@@ -452,3 +454,4 @@ while True:
         raise SystemExit
     finally:
         statistics.store()
+        virt_disp.stop()

@@ -61,9 +61,6 @@ class WebDriver(metaclass=SwithSuperMetaclass):
     _profile = None
 
     def __init__(self, **kwargs):
-        self.display = VirtualDisplay()
-        self.display.start()
-
         self.logger = Logger()
         self.driver_profile = kwargs
 
@@ -83,12 +80,9 @@ class WebDriver(metaclass=SwithSuperMetaclass):
             self.take_screenshot()
         except Exception:
             pass
+
         try:
             self.quit()
-        except Exception:
-            pass
-        try:
-            self.display.stop()
         except Exception:
             pass
 
