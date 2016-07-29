@@ -451,7 +451,7 @@ while True:
         del driver
     except KeyboardInterrupt:
         logger.info('Job canceled by the user')
+        virt_disp.stop()
         raise SystemExit
     finally:
         statistics.store()
-        virt_disp.stop()

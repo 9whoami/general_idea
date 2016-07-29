@@ -40,12 +40,14 @@ class VirtualDisplay(metaclass=SingletonMetaclass):
             self.display.start()
 
     def stop(self):
-        if isinstance(self.display, Display):
-            self.display.stop()
+        self.__del__()
 
     def __del__(self):
         if isinstance(self.display, Display):
-            self.display.stop()
+            try:
+                self.display.stop()
+            except Exception as e:
+                print(e)
 
     @staticmethod
     def on_virtual_display(fun):
