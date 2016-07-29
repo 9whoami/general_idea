@@ -428,6 +428,7 @@ while True:
         except AttributeError:
             del driver
             continue
+
         sleep(2)
 
         sig.collect_result()
@@ -453,5 +454,7 @@ while True:
         logger.info('Job canceled by the user')
         virt_disp.stop()
         raise SystemExit
+    except Exception:
+        virt_disp.stop()
     finally:
         statistics.store()
