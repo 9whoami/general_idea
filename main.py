@@ -263,9 +263,11 @@ class ViewTargetSite:
 
     @call_info
     def go_to_rnd_lnk(self):
+        redirect = 1
         while True:
             logger.info(self)
-            self.collect_lnk()
+            if redirect:
+                self.collect_lnk()
             try:
                 if self.depth_cur >= self.depth_max:
                     raise StopIteration
@@ -277,7 +279,8 @@ class ViewTargetSite:
             if config.target_domain not in href:
                 continue
             driver.execute_script('arguments[0].setAttribute("target","");', link)
-            if not self.driver.btn_click(link):
+            redirect = self.driver.btn_click(link)
+            if not redirect:
                 continue
             self.depth_cur += 1
             yield
