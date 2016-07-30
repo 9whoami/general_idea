@@ -268,6 +268,7 @@ class ViewTargetSite:
             logger.info(self)
             if redirect:
                 self.collect_lnk()
+                redirect = False
             try:
                 if self.depth_cur >= self.depth_max:
                     raise StopIteration
@@ -373,8 +374,6 @@ def timer(seconds):
     for _ in range(0, seconds):
         sleep(1)
 
-virt_disp = VirtualDisplay()
-virt_disp.start()
 while True:
     try:
         logger.info(statistics)
@@ -425,10 +424,10 @@ while True:
 
         sig = SearchInGoogle(driver)
         try:
-            if not sig.captcha():
-                raise AttributeError
+            assert sig.captcha()
             sig.search(request)
-        except AttributeError:
+            assert sig.captcha()
+        except (AttributeError, AssertionError):
             del driver
             continue
 
@@ -452,12 +451,7 @@ while True:
                 statistics.inc(statistics.JUMP_TO_OTHER_SITE)
 
         logger.info('The work is finished, close the Web Driver')
-        del driver
-    except KeyboardInterrupt:
-        logger.info('Job canceled by the user')
-        virt_disp.stop()
-        raise SystemExit
-    except Exception:
-        virt_disp.stop()
+        driver.close()
     finally:
         statistics.store()
+        break
