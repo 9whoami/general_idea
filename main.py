@@ -300,7 +300,7 @@ def read_search_requests():
         shuffle(search_requests)
     except Exception as e:
         logger.error('It raises an exception with message: {!r}'.format(str(e)))
-        raise SystemExit
+        raise Exception
     else:
         logger.info('Reading search requests list...OK')
 
@@ -333,7 +333,7 @@ def get_proxy():
                 proxy = response.split('\n')
     except Exception as e:
         logger.error('It raises an exception with message: {!r}'.format(str(e)))
-        raise SystemExit(e)
+        raise Exception(e)
     else:
         logger.info('Reading proxy list...OK')
         return proxy
@@ -363,7 +363,7 @@ try:
     statistics = Statistic(general_site_list=target_sites, keywords=search_requests)
 except BaseException as e:
     logger.critical('Initialization raises an exception with message: {!r}'.format(str(e)))
-    raise SystemExit
+    raise Exception
 else:
     logger.info('Initialization...OK')
 
@@ -396,7 +396,7 @@ while True:
         attempts = 10
         while True:
             if attempt >= attempts:
-                raise SystemExit('You have exceeded the number of attempts to start web driver')
+                raise Exception('You have exceeded the number of attempts to start web driver')
             proxy_list = proxy_update(proxy_list_old[:])
             proxy = None
             try:
