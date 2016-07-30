@@ -19,10 +19,12 @@ def main():
 if __name__ == '__main__':
     virt_disp = VirtualDisplay()
     virt_disp.start()
-    try:
-        while True:
+    while True:
+        try:
             main()
-    except KeyboardInterrupt:
-        logger.info('Job canceled by the user')
-        raise SystemExit
+        except KeyboardInterrupt:
+            logger.info('Job canceled by the user')
+            raise SystemExit
+        except Exception:
+            continue
     virt_disp.stop()
