@@ -296,7 +296,7 @@ def read_search_requests():
 
     try:
         with open('search_requests', 'r') as f:
-            search_requests = f.read().split('\n')
+            search_requests = list(x for x in f.read().split('\n') if bool(x) is True)
         shuffle(search_requests)
     except Exception as e:
         logger.error('It raises an exception with message: {!r}'.format(str(e)))
