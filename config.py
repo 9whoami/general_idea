@@ -10,7 +10,7 @@ __description__ = """Интерфейс для работы с конфигур�
 
 
 class Conf(ConfigParser):
-    def __init__(self, file=''):
+    def __init__(self, file='settings.cfg'):
         super().__init__()
         self.cfg_file = file
         self.namespace = dict()
