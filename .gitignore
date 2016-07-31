@@ -4,10 +4,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
-.idea
-.wrp_venv
-logs
-screen
+.idea/
+.wrp_venv/
+logs/
+screen/
 captcha.png
 test.py
 proxy
