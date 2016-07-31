@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from main import runer
 from logger import Logger
 from threadpool import ThreadPool
 from virtual_display import VirtualDisplay
@@ -12,16 +13,12 @@ __description__ = """"""
 th_pool = ThreadPool(max_threads=1)
 logger = Logger()
 
-@th_pool.thread
-def main():
-    import main
-
 if __name__ == '__main__':
     virt_disp = VirtualDisplay()
     virt_disp.start()
     while True:
         try:
-            main()
+            runer()
         except KeyboardInterrupt:
             logger.info('Job canceled by the user')
             raise SystemExit

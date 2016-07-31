@@ -348,33 +348,27 @@ def proxy_update(proxy_old):
     return proxy
 
 
-logger = Logger()
-logger.info("Initialization...")
-try:
-    fake_ua = UserAgent()
-    th_pool = ThreadPool(max_threads=1)
-    config = Conf()
-    config.read_section('base')
-    target_sites = config.target_domain.split(',')
-    driver = None
-    proxy_list = get_proxy()
-    proxy_list_old = list()
-    search_requests = read_search_requests()
-    statistics = Statistic(general_site_list=target_sites, keywords=search_requests)
-except BaseException as e:
-    logger.critical('Initialization raises an exception with message: {!r}'.format(str(e)))
-    raise Exception
-else:
-    logger.info('Initialization...OK')
+def runer():
+    global logger, proxy_list, search_requests, proxy
+    logger = Logger()
+    logger.info("Initialization...")
+    try:
+        fake_ua = UserAgent()
+        config = Conf()
+        config.read_section('base')
+        target_sites = config.target_domain.split(',')
+        driver = None
+        proxy_list = get_proxy()
+        proxy_list_old = list()
+        search_requests = read_search_requests()
+        statistics = Statistic(general_site_list=target_sites, keywords=search_requests)
+    except BaseException as e:
+        logger.critical('Initialization raises an exception with message: {!r}'.format(str(e)))
+        raise Exception
+    else:
+        logger.info('Initialization...OK')
 
 
-@th_pool.thread
-def timer(seconds):
-    logger.info('Sleep {} seconds'.format(seconds))
-    for _ in range(0, seconds):
-        sleep(1)
-
-while True:
     try:
         logger.info(statistics)
         if statistics.check_update():
@@ -388,7 +382,7 @@ while True:
         except IndexError:
             logger.info('Request list is empty')
             search_requests = read_search_requests()
-            continue
+            return
         else:
             logger.info('Receiving a search request...OK')
 
@@ -428,8 +422,7 @@ while True:
             sig.search(request)
             assert sig.captcha()
         except (AttributeError, AssertionError):
-            del driver
-            continue
+            driver.close()
 
         sleep(2)
 
@@ -454,4 +447,14 @@ while True:
         driver.close()
     finally:
         statistics.store()
-        break
+
+
+th_pool = ThreadPool(max_threads=1)
+
+
+@th_pool.thread
+def timer(seconds):
+    logger.info('Sleep {} seconds'.format(seconds))
+    for _ in range(0, seconds):
+        sleep(1)
+
