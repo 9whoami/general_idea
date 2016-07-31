@@ -353,6 +353,7 @@ logger = Logger()
 logger.info("Initialization...")
 try:
     fake_ua = UserAgent()
+    th_pool = ThreadPool(max_threads=1)
     config = Conf()
     config.read_section('base')
     target_sites = config.target_domain.split(',')
@@ -368,7 +369,14 @@ else:
     logger.info('Initialization...OK')
 
 
+@th_pool.thread
+def timer(seconds):
+    logger.info('Sleep {} seconds'.format(seconds))
+    for _ in range(0, seconds):
+        sleep(1)
+
 def runer():
+    global search_requests
     try:
         logger.info(statistics)
         if statistics.check_update():
@@ -392,7 +400,7 @@ def runer():
             if attempt >= attempts:
                 raise Exception('You have exceeded the number of attempts to start web driver')
             proxy_list = proxy_update(proxy_list_old[:])
-            proxy = None
+            # proxy = None
             try:
                 logger.info('Receiving a proxy...')
                 proxy = proxy_list.pop()
@@ -447,14 +455,3 @@ def runer():
         driver.close()
     finally:
         statistics.store()
-
-
-th_pool = ThreadPool(max_threads=1)
-
-
-@th_pool.thread
-def timer(seconds):
-    logger.info('Sleep {} seconds'.format(seconds))
-    for _ in range(0, seconds):
-        sleep(1)
-
