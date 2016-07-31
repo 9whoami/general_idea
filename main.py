@@ -348,27 +348,27 @@ def proxy_update(proxy_old):
     return proxy
 
 
+
+logger = Logger()
+logger.info("Initialization...")
+try:
+    fake_ua = UserAgent()
+    config = Conf()
+    config.read_section('base')
+    target_sites = config.target_domain.split(',')
+    driver = None
+    proxy_list = get_proxy()
+    proxy_list_old = list()
+    search_requests = read_search_requests()
+    statistics = Statistic(general_site_list=target_sites, keywords=search_requests)
+except BaseException as e:
+    logger.critical('Initialization raises an exception with message: {!r}'.format(str(e)))
+    raise Exception
+else:
+    logger.info('Initialization...OK')
+
+
 def runer():
-    global logger, proxy_list, search_requests, proxy
-    logger = Logger()
-    logger.info("Initialization...")
-    try:
-        fake_ua = UserAgent()
-        config = Conf()
-        config.read_section('base')
-        target_sites = config.target_domain.split(',')
-        driver = None
-        proxy_list = get_proxy()
-        proxy_list_old = list()
-        search_requests = read_search_requests()
-        statistics = Statistic(general_site_list=target_sites, keywords=search_requests)
-    except BaseException as e:
-        logger.critical('Initialization raises an exception with message: {!r}'.format(str(e)))
-        raise Exception
-    else:
-        logger.info('Initialization...OK')
-
-
     try:
         logger.info(statistics)
         if statistics.check_update():
